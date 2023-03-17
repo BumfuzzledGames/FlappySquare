@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(FlappySquare VERSION 0.0.1)
+project(FlappySquare VERSION 0.0.2)
 find_package(SDL2 REQUIRED)
 
 set(
