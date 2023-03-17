@@ -54,8 +54,11 @@ static const SDL_Color background_color = {100, 100, 255, 255};
 static const SDL_Color ground_color = {0, 128, 0, 255};
 static const SDL_Color pipe_color = {0, 200, 0, 255};
 static const SDL_Color bird_color = {200, 200, 200, 255};
-static const SDL_Color trigger_color = {255, 0, 0, 128};
 static const SDL_Color text_color = {200, 200, 200, 255};
+
+#ifndef NDEBUG
+static const SDL_Color trigger_color = {255, 0, 0, 128};
+#endif
 
 const SDL_FRect ground = {
     .x = 0,
