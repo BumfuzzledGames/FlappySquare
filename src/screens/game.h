@@ -47,6 +47,13 @@
  * it isn't the current screen. */
 void new_game();
 
+/** Disable collisions in the game
+ * 
+ * This is used by the game over screen to allow the player
+ * to fall in the background while the game over screen is
+ * displayed */
+void disable_game_collisions();
+
 /** Enter game screen, set current screen */
 void enter_game_screen();
 

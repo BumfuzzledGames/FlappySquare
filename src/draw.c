@@ -28,6 +28,14 @@ void set_draw_color(const SDL_Color *color) {
     SDL_SetRenderDrawColor(
         renderer,
         color->r, color->g, color->b, color->a);
+    if(color->a == 255)
+        SDL_SetRenderDrawBlendMode(
+            renderer,
+            SDL_BLENDMODE_NONE);
+    else
+        SDL_SetRenderDrawBlendMode(
+            renderer,
+            SDL_BLENDMODE_BLEND);
 }
 
 void draw_rect(const SDL_FRect *rect, const SDL_Color *color) {

@@ -49,7 +49,8 @@ static Bird bird;
 static int score;
 static int high_score;
 
-static const SDL_Color clear_color = {32, 32, 32, 255};
+static SDL_bool collisions_enabled;
+
 static const SDL_Color background_color = {100, 100, 255, 255};
 static const SDL_Color ground_color = {0, 128, 0, 255};
 static const SDL_Color pipe_color = {0, 200, 0, 255};
@@ -66,6 +67,10 @@ const SDL_FRect ground = {
     .w = WINDOW_WIDTH,
     .h = WINDOW_HEIGHT - GROUND_Y,
 };
+
+void disable_game_collisions() {
+    collisions_enabled = SDL_FALSE;
+}
 
 int get_score() {
     return score;
@@ -181,10 +186,6 @@ static void draw_bird() {
 
 /** Clear the screen and draw the game */
 void draw_game() {
-    // Clear everything, including the window outside
-    // the game area
-    set_draw_color(&clear_color);
-    SDL_RenderClear(renderer);
     // Clear the game area
     set_draw_color(&background_color);
     SDL_RenderFillRect(renderer, NULL);
@@ -210,6 +211,7 @@ void new_game() {
     SDL_memset(&pipes, 0, sizeof(pipes));
     new_pipe();
     new_bird();
+    collisions_enabled = SDL_TRUE;
 }
 
 void enter_game_screen() {
@@ -225,6 +227,29 @@ void enter_game_screen() {
     flap();
 
     set_current_screen(game_screen);
+}
+
+SDL_bool check_collisions() {
+    // Bird hit trigger?
+    for(int pipe = 0; pipe < MAX_PIPES; pipe++) {
+        if(SDL_HasIntersectionF(&pipes[pipe].trigger, &bird.rect)) {
+            // Hit a trigger, increment score and disable
+            // the trigger
+            pipes[pipe].trigger = (SDL_FRect){0};
+            score++;
+            if(score > high_score)
+                high_score++;
+        }
+    }
+
+    // Game over?
+    SDL_bool game_over = SDL_FALSE;
+    game_over |= SDL_HasIntersectionF(&ground, &bird.rect);
+    for(int pipe = 0; !game_over && pipe < MAX_PIPES; pipe++) {
+        game_over |= SDL_HasIntersectionF(&pipes[pipe].top, &bird.rect);
+        game_over |= SDL_HasIntersectionF(&pipes[pipe].bottom, &bird.rect);
+    }
+    return game_over;
 }
 
 void game_screen(float delta_time) {
@@ -255,25 +280,10 @@ void game_screen(float delta_time) {
     move_pipes(delta_time);
     move_bird(delta_time);
 
-    // Bird hit trigger?
-    for(int pipe = 0; pipe < MAX_PIPES; pipe++) {
-        if(SDL_HasIntersectionF(&pipes[pipe].trigger, &bird.rect)) {
-            // Hit a trigger, increment score and disable
-            // the trigger
-            pipes[pipe].trigger = (SDL_FRect){0};
-            score++;
-            if(score > high_score)
-                high_score++;
-        }
-    }
-
-    // Game over?
     SDL_bool game_over = SDL_FALSE;
-    game_over |= SDL_HasIntersectionF(&ground, &bird.rect);
-    for(int pipe = 0; !game_over && pipe < MAX_PIPES; pipe++) {
-        game_over |= SDL_HasIntersectionF(&pipes[pipe].top, &bird.rect);
-        game_over |= SDL_HasIntersectionF(&pipes[pipe].bottom, &bird.rect);
-    }
+    if(collisions_enabled)
+        game_over = check_collisions();
+
     if(game_over) {
         enter_game_over_screen();
         game_over_screen(delta_time);
@@ -282,5 +292,4 @@ void game_screen(float delta_time) {
 
     // Render game
     draw_game();
-    SDL_RenderPresent(renderer);
 }

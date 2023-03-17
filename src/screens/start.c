@@ -48,7 +48,6 @@ void start_screen(float delta_time) {
         WINDOW_HEIGHT / 2,
         &text_color,
         "Click to flap");
-    SDL_RenderPresent(renderer);
 }
 
 void enter_start_screen() {

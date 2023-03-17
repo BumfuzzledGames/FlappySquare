@@ -25,13 +25,15 @@
 #include "../event.h"
 #include "../font.h"
 #include "../window.h"
+#include "../draw.h"
 #include <SDL.h>
 
 static SDL_TimerID delay_timer;
 static SDL_Event delay_event = {GAME_OVER_DELAY_EVENT};
 static SDL_bool display_message;
 
-static const SDL_Color game_over_text_color = {0, 0, 0, 255};
+static const SDL_Color text_color = {255, 255, 255, 255};
+static const SDL_Color overlay_color = {64, 0, 0, 192};
 
 void enter_game_over_screen() {
     SDL_RemoveTimer(delay_timer);
@@ -40,6 +42,7 @@ void enter_game_over_screen() {
         reflect_event,
         &delay_event);
     display_message = SDL_FALSE;
+    disable_game_collisions();
     set_current_screen(game_over_screen);
 }
 
@@ -66,18 +69,23 @@ void game_over_screen(float delta_time) {
         }
     }
 
-    // Draw the game and the game over overlay
-    draw_game();
+    // Keep updating and drawing the game in slow motion
+    // enter_game_over disabled collision, though
+    game_screen(delta_time / 10);
 
+    set_draw_color(&overlay_color);
+    SDL_RenderFillRect(
+        renderer,
+        0);
+
+    // Draw the message
     const char *message = "";
     if(display_message)
         message = "\nClick to\nplay again";
     draw_string_centered(
         0, WINDOW_WIDTH,
         (WINDOW_HEIGHT / 2) - FONT_CHARACTER_HEIGHT * FONT_DISPLAY_SCALE,
-        &game_over_text_color,
+        &text_color,
         "WASTED\n%s",
         message);
-
-    SDL_RenderPresent(renderer);
 }
