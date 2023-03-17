@@ -39,14 +39,33 @@
 #define BIRD_WIDTH 20
 #define BIRD_HEIGHT 20
 
+/** Start a new game
+ * 
+ * This function is separate from enter_game_screen because
+ * the game screen needs to be able to be a "client" screen,
+ * that is, other screens need to be able to draw it when
+ * it isn't the current screen. */
 void new_game();
+
+/** Enter game screen, set current screen */
 void enter_game_screen();
+
+/** Update and render one frame of the game screen */
 void game_screen(float delta_time);
+
+/** Draw the game screen */
 void draw_game();
 
+/** Get score of curren game */
 int get_score();
+
+/** Get the high score of all games played this session */
 int get_high_score();
+
+/** Set the score, update high score if necessary */
 void set_score(int score);
+
+/** Increment the score by amount, set high score if necessary */
 void increment_score(int amount);
 
 #endif // FLAPPY_SCREEN_GAME_H

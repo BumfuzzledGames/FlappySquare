@@ -22,9 +22,14 @@
 #ifndef FLAPPY_SCREEN_H
 #define FLAPPY_SCREEN_H
 
+/** A screen function updates and renders a single frame */
 typedef void (*Screen)(float delta_time);
 
+/** Set the current screen to screen
+ * @param screen The new current screen */
 void set_current_screen(Screen screen);
+
+/** Update and render a single frame of the current scene */
 void run_current_screen();
 
 #endif // FLAPPY_SCREEN_H

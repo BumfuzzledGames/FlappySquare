@@ -23,6 +23,7 @@
 #define FLAPPY_EVENT_H
 #include <SDL.h>
 
+/** User event IDs */
 enum UserEvents {
     PIPE_SPAWN_EVENT = SDL_USEREVENT,
     GAME_OVER_DELAY_EVENT,

@@ -22,7 +22,10 @@
 #ifndef FLAPPY_SCREENS_START_H
 #define FLAPPY_SCREENS_START_H
 
+/* Enter the start screen, set current screen */
 void enter_start_screen();
+
+/* Update and render one frame of the start screen */
 void start_screen(float delta_time);
 
 #endif // FLAPPY_SCREENS_START_H

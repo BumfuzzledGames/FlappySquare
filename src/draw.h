@@ -27,7 +27,9 @@
  * @param color The color to set */
 void set_draw_color(const SDL_Color *color);
 
-/** Draw a rect and its outline */
+/** Draw a rect and its outline
+ * @param rect The rect
+ * @param rect Fill color of the rect */
 void draw_rect(const SDL_FRect *rect, const SDL_Color *color);
 
 #endif // FLAPPY_DRAW_H

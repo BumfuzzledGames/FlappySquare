@@ -24,7 +24,10 @@
 
 #define GAME_OVER_DELAY 1000
 
+/** Enter the game over screen, set current screen */
 void enter_game_over_screen();
+
+/** Update and render one frame of the game over screen */
 void game_over_screen(float delta_time);
 
 #endif // FLAPPY_SCREEN_GAME_OVER_H

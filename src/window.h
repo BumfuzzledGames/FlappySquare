@@ -27,9 +27,13 @@
 #define WINDOW_WIDTH (1080/4)
 #define WINDOW_HEIGHT (1920/4)
 
+/** The window */
 extern SDL_Window *window;
+
+/** The window's renderer */
 extern SDL_Renderer *renderer;
 
+/** Create the window and its renderer, exit on failure */
 void create_window();
 
 #endif // FLAPPY_WINDOW_H
