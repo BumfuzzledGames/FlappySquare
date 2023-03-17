@@ -20,6 +20,9 @@
  **********************************************************/
 #include <SDL.h>
 #include "font.h"
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif // __EMSCRIPTEN__
 
 #define WINDOW_TITLE "Flappy Square"
 #define WINDOW_WIDTH (1080/4)
@@ -66,6 +69,13 @@ struct Bird {
     SDL_FPoint velocity;
 };
 
+void game_start_screen();
+void enter_game_start_screen();
+void game_screen();
+void enter_game_screen();
+void game_over_screen();
+void enter_game_over_screen();
+
 /** Set to true if this is a debug build */
 #ifndef NDEBUG
 const SDL_bool debug_build = 1;
@@ -73,11 +83,14 @@ const SDL_bool debug_build = 1;
 const SDL_bool debug_build = 0;
 #endif
 
+void (*current_screen)();
+
 /** The window and its renderer */
 SDL_Window *window;
 SDL_Renderer *renderer;
 
 /** Time */
+Uint64 last_frame;
 float delta_time;
 
 /** Score */
@@ -92,6 +105,7 @@ SDL_Event pipe_spawn_event = {PIPE_SPAWN_EVENT};
 /** Game over screen */
 SDL_TimerID game_over_delay_timer;
 SDL_Event game_over_delay_event = {GAME_OVER_DELAY_EVENT};
+SDL_bool game_over_screen_message;
 
 /** The ground */
 const SDL_FRect ground = {
@@ -283,87 +297,84 @@ void draw_game() {
         WINDOW_TITLE);
 }
 
-/** Display the game over screen
- * @returns SDL_TRUE if another game should be played,
- *          otherwise SDL_FALSE */
-SDL_bool game_over_screen() {
+void enter_game_over_screen() {
     SDL_RemoveTimer(game_over_delay_timer);
     game_over_delay_timer = SDL_AddTimer(
         GAME_OVER_DELAY,
         reflect_event,
         &game_over_delay_event);
-    SDL_bool message_enabled = SDL_FALSE;
-    while(1) {
-        // Process events
-        for(SDL_Event event; SDL_PollEvent(&event);) {
-            if(event.type == GAME_OVER_DELAY_EVENT)
-                message_enabled = SDL_TRUE;
-            switch(event.type) {
-            case SDL_KEYDOWN:
-            case SDL_MOUSEBUTTONDOWN:
-                if(message_enabled)
-                    return SDL_TRUE;
-                break;
-            case SDL_QUIT:
-                return SDL_FALSE;
-            }
-        }
-
-        // Draw the game and the game over overlay
-        draw_game();
-
-        const char *message = "";
-        if(message_enabled)
-            message = "\nClick to\nplay again";
-        draw_string_centered(
-            0, WINDOW_WIDTH,
-            (WINDOW_HEIGHT / 2) - FONT_CHARACTER_HEIGHT * FONT_DISPLAY_SCALE,
-            &game_over_text_color,
-            "WASTED\n%s",
-            message);
-        SDL_RenderPresent(renderer);
-    }
+    game_over_screen_message = SDL_FALSE;
+    current_screen = game_over_screen;
 }
 
-/** Display the game start screen
- * @returns SDL_TRUE if the game should start, or SDL_FALSE
- *          if the game should quit */
-SDL_bool game_start_screen() {
-    while(1) {
-        // Process events
-        for(SDL_Event event; SDL_PollEvent(&event);) {
-            switch(event.type) {
-            case SDL_QUIT:
-                return SDL_FALSE;
-            case SDL_KEYDOWN:
-            case SDL_MOUSEBUTTONDOWN:
-                return SDL_TRUE;
-            }
+/** Display the game over screen */
+void game_over_screen() {
+    // Process events
+    for(SDL_Event event; SDL_PollEvent(&event);) {
+        switch(event.type) {
+        case GAME_OVER_DELAY_EVENT:
+            game_over_screen_message = SDL_TRUE;
+            SDL_RemoveTimer(game_over_delay_timer);
+            game_over_delay_timer = 0;
+            break;
+        case SDL_KEYDOWN:
+        case SDL_MOUSEBUTTONDOWN:
+            if(game_over_screen_message)
+                enter_game_start_screen();
+            break;
+        case SDL_QUIT:
+            exit(EXIT_SUCCESS);
         }
-
-        // Draw the game with the game start overlay
-        draw_game();
-        draw_string_centered(
-            0, WINDOW_WIDTH,
-            WINDOW_HEIGHT / 2,
-            &game_start_text_color,
-            "Click to flap");
-        SDL_RenderPresent(renderer);
     }
+
+    // Draw the game and the game over overlay
+    draw_game();
+
+    const char *message = "";
+    if(game_over_screen_message)
+        message = "\nClick to\nplay again";
+    draw_string_centered(
+        0, WINDOW_WIDTH,
+        (WINDOW_HEIGHT / 2) - FONT_CHARACTER_HEIGHT * FONT_DISPLAY_SCALE,
+        &game_over_text_color,
+        "WASTED\n%s",
+        message);
+    SDL_RenderPresent(renderer);
 }
 
-/** Run a game from start screen to game over screen
- * @returns SDL_TRUE if another game should be played,
- *          otherwise SDL_FALSE */
-SDL_bool run_game() {
+void enter_game_start_screen() {
     // Initialize game state
     new_game();
 
-    // Show the game start screen, return false if
-    // an SDL_QUIT event was received
-    if(!game_start_screen())
-        return SDL_FALSE;
-    
+    current_screen = game_start_screen;
+}
+
+/** Display the game start screen */
+void game_start_screen() {
+    // Process events
+    for(SDL_Event event; SDL_PollEvent(&event);) {
+        switch(event.type) {
+        case SDL_QUIT:
+            exit(EXIT_SUCCESS);
+        case SDL_KEYDOWN:
+        case SDL_MOUSEBUTTONDOWN:
+            enter_game_screen();
+            game_screen();
+            return;
+        }
+    }
+
+    // Draw the game with the game start overlay
+    draw_game();
+    draw_string_centered(
+        0, WINDOW_WIDTH,
+        WINDOW_HEIGHT / 2,
+        &game_start_text_color,
+        "Click to flap");
+    SDL_RenderPresent(renderer);
+}
+
+void enter_game_screen() {
     // If the pipe spawn timer is active, kill it
     // and start again
     SDL_RemoveTimer(pipe_spawn_timer);
@@ -375,69 +386,75 @@ SDL_bool run_game() {
     // Start the game with a flap
     flap();
 
-    // Track frame time in ticks to calculate delta_time
-    Uint64 last_frame = SDL_GetPerformanceCounter();
-    while(1) {
-        // Get the tick count for the start of this frame
-        // and use it to calculate delta_time
-        Uint64 this_frame = SDL_GetPerformanceCounter();
-        delta_time = ticks_to_seconds(this_frame - last_frame);
-        last_frame = this_frame;
+    current_screen = game_screen;
+}
 
-        // Process events
-        for(SDL_Event event; SDL_PollEvent(&event);) {
-            switch (event.type) {
-            case SDL_QUIT:
-                return SDL_FALSE;
-            // Spawn a pipe
-            case PIPE_SPAWN_EVENT:
-                new_pipe();
+void game_screen() {
+    // Process events
+    for(SDL_Event event; SDL_PollEvent(&event);) {
+        switch (event.type) {
+        case SDL_QUIT:
+            exit(EXIT_SUCCESS);
+        // Spawn a pipe
+        case PIPE_SPAWN_EVENT:
+            new_pipe();
+            break;
+        // Flap on key
+        case SDL_KEYDOWN:
+            if(event.key.repeat)
                 break;
-            // Flap on key
-            case SDL_KEYDOWN:
-                if(event.key.repeat)
-                    break;
-                // Fallthrough
-            // Or on mouse button
-            case SDL_MOUSEBUTTONDOWN:
-                flap();
-                break;
-            default:
-                break;
-            }
+            // Fallthrough
+        // Or on mouse button
+        case SDL_MOUSEBUTTONDOWN:
+            flap();
+            break;
+        default:
+            break;
         }
-
-        // Update game
-        move_pipes();
-        move_bird();
-
-        // Bird hit trigger?
-        for(int pipe = 0; pipe < MAX_PIPES; pipe++) {
-            if(SDL_HasIntersectionF(&pipes[pipe].trigger, &bird.rect)) {
-                // Hit a trigger, increment score and disable
-                // the trigger
-                pipes[pipe].trigger = (SDL_FRect){0};
-                score++;
-                if(score > high_score)
-                    high_score++;
-            }
-        }
-
-        // Game over?
-        SDL_bool game_over = SDL_FALSE;
-        game_over |= SDL_HasIntersectionF(&ground, &bird.rect);
-        for(int pipe = 0; !game_over && pipe < MAX_PIPES; pipe++) {
-            game_over |= SDL_HasIntersectionF(&pipes[pipe].top, &bird.rect);
-            game_over |= SDL_HasIntersectionF(&pipes[pipe].bottom, &bird.rect);
-        }
-        if(game_over) {
-            return game_over_screen();
-        }
-
-        // Render game
-        draw_game();
-        SDL_RenderPresent(renderer);
     }
+
+    // Update game
+    move_pipes();
+    move_bird();
+
+    // Bird hit trigger?
+    for(int pipe = 0; pipe < MAX_PIPES; pipe++) {
+        if(SDL_HasIntersectionF(&pipes[pipe].trigger, &bird.rect)) {
+            // Hit a trigger, increment score and disable
+            // the trigger
+            pipes[pipe].trigger = (SDL_FRect){0};
+            score++;
+            if(score > high_score)
+                high_score++;
+        }
+    }
+
+    // Game over?
+    SDL_bool game_over = SDL_FALSE;
+    game_over |= SDL_HasIntersectionF(&ground, &bird.rect);
+    for(int pipe = 0; !game_over && pipe < MAX_PIPES; pipe++) {
+        game_over |= SDL_HasIntersectionF(&pipes[pipe].top, &bird.rect);
+        game_over |= SDL_HasIntersectionF(&pipes[pipe].bottom, &bird.rect);
+    }
+    if(game_over) {
+        enter_game_over_screen();
+        game_over_screen();
+        return;
+    }
+
+    // Render game
+    draw_game();
+    SDL_RenderPresent(renderer);
+}
+
+void run_current_screen() {
+    // Get the tick count for the start of this frame
+    // and use it to calculate delta_time
+    Uint64 this_frame = SDL_GetPerformanceCounter();
+    delta_time = ticks_to_seconds(this_frame - last_frame);
+    last_frame = this_frame;
+
+    current_screen();
 }
 
 int main(int argc, char *argv[]) {
@@ -445,12 +462,14 @@ int main(int argc, char *argv[]) {
     (void)argc;
     (void)argv;
 
+    SDL_Log("Starting game");
+
     // Seed PRNG
     srand((unsigned int)SDL_GetPerformanceCounter());
 
     // Initialize SDL, create window and create renderer.
     // Exit program if any of them fail
-    if(SDL_Init(SDL_INIT_EVERYTHING)) {
+    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER)) {
         SDL_Log("SDL_Init: %s", SDL_GetError());
         exit(EXIT_FAILURE);
     }
@@ -489,8 +508,17 @@ int main(int argc, char *argv[]) {
         window,
         WINDOW_WIDTH, WINDOW_HEIGHT);
     
-    // Run the game until run_game returns false
-    while(run_game()) {}
+    // Track frame time in ticks to calculate delta_time
+    last_frame = SDL_GetPerformanceCounter();
+
+    enter_game_start_screen();
+    #ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop(run_current_screen, 0, 1);
+    #else // __EMSCRIPTEN__
+    while(1) {
+        run_current_screen();
+    }
+    #endif // __EMSCRIPTEN__
 
     // Flapping has ceased, exit
     SDL_Quit();
