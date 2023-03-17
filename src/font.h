@@ -21,6 +21,7 @@
 
 #ifndef FLAPPY_FONT_H
 #define FLAPPY_FONT_H
+#include <SDL.h>
 
 // Note: @ is actually the copyright symbol
 #define FONT_CHARSET                                       \

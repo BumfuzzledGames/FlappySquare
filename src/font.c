@@ -18,7 +18,6 @@
  * License along with this program.  If not, see
  * <https://www.gnu.org/licenses/>.
  **********************************************************/
-#include <SDL.h>
 #include "font.h"
 
 extern unsigned char font_bmp[];

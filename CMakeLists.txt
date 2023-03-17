@@ -2,16 +2,59 @@ cmake_minimum_required(VERSION 3.0.0)
 project(FlappySquare VERSION 0.0.1)
 find_package(SDL2 REQUIRED)
 
-set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c17 -Wall -Wextra -Wshadow -Werror -pedantic")
+set(
+    SRC
+    src/draw.c
+    src/event.c
+    src/font.c
+    src/main.c
+    src/screen.c
+    src/util.c
+    src/window.c
+    src/screens/game_over.c
+    src/screens/game.c
+    src/screens/start.c
+)
 
-add_executable(FlappySquare main.c font.c)
-target_link_libraries(FlappySquare SDL2::SDL2main SDL2::SDL2)
+add_executable(FlappySquare ${SRC})
+target_link_libraries(
+    FlappySquare
+    SDL2::SDL2main SDL2::SDL2
+)
 
-install(TARGETS FlappySquare RUNTIME DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/bin/FlappySquare")
-install(FILES $<TARGET_RUNTIME_DLLS:FlappySquare> DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/bin/FlappySquare")
+set(
+    CFLAGS
+    -std=c17
+    -Wall -Wextra -Wshadow -Werror
+    -pedantic
+    -fanalyzer
+)
 
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
+target_compile_options(
+    FlappySquare
+    PUBLIC $<$<CONFIG:DEBUG>:${CFLAGS} -O0>
+    PUBLIC $<$<CONFIG:RELEASE>:${CFLAGS}>
+)
+
+# Hide console on Windows release builds
+if(WIN32)
+    set_target_properties(
+        FlappySquare
+        PROPERTIES
+        LINK_FLAGS_DEBUG "-mconsole"
+        LINK_FLAGS_RELEASE "-mwindows"
+        LINK_FLAGS_RELWITHDEBINFO "-mwindows"
+        LINK_FLAGS_MINSIZEREL "-mwindows"
+    )
+endif(WIN32)
+
+
+set(INSTALLDIR "${CMAKE_CURRENT_BINARY_DIR}/bin/FlappySquare")
+install(
+    TARGETS FlappySquare
+    RUNTIME DESTINATION "${INSTALLDIR}"
+)
+install(
+    FILES $<TARGET_RUNTIME_DLLS:FlappySquare>
+    DESTINATION "${INSTALLDIR}"
+)
