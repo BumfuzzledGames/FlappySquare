@@ -32,7 +32,7 @@
 #define PIPE_GAP_MIN_Y 150
 #define PIPE_GAP_MAX_Y (WINDOW_HEIGHT - 150)
 #define PIPE_SPEED -60
-#define PIPE_SPAWN_TIME 2
+#define PIPE_SPAWN_TIME 2000
 #define MAX_PIPES 5
 
 #define BIRD_FLAP_VELOCITY -200
@@ -41,6 +41,14 @@
 #define BIRD_SPAWN_Y 100
 #define BIRD_WIDTH 20
 #define BIRD_HEIGHT 20
+
+#define GAME_OVER_DELAY 1000
+
+/** SDL user events */
+enum UserEvents {
+    PIPE_SPAWN_EVENT = SDL_USEREVENT,
+    GAME_OVER_DELAY_EVENT,
+};
 
 /** A pipe */
 typedef struct Pipe Pipe;
@@ -71,7 +79,6 @@ SDL_Renderer *renderer;
 
 /** Time */
 float delta_time;
-float game_time;
 
 /** Score */
 int score;
@@ -79,7 +86,12 @@ int high_score;
 
 /** Pipes */
 Pipe pipes[MAX_PIPES];
-float last_pipe_spawn;
+SDL_TimerID pipe_spawn_timer;
+SDL_Event pipe_spawn_event = {PIPE_SPAWN_EVENT};
+
+/** Game over screen */
+SDL_TimerID game_over_delay_timer;
+SDL_Event game_over_delay_event = {GAME_OVER_DELAY_EVENT};
 
 /** The ground */
 const SDL_FRect ground = {
@@ -101,9 +113,7 @@ const SDL_Color pipe_color = {0, 200, 0, 255};
 const SDL_Color bird_color = {200, 200, 200, 255};
 const SDL_Color trigger_color = {255, 0, 0, 128};
 const SDL_Color text_color = {200, 200, 200, 255};
-const SDL_Color game_over_color = {255, 0, 0, 128}; 
 const SDL_Color game_over_text_color = {0, 0, 0, 255};
-const SDL_Color game_start_color = {0, 255, 0, 128};
 const SDL_Color game_start_text_color = {192, 255, 192, 255};
 
 /** Convert an amount of ticks to seconds
@@ -111,6 +121,17 @@ const SDL_Color game_start_text_color = {192, 255, 192, 255};
  * @return      The seconds */
 float ticks_to_seconds(Uint64 ticks) {
     return (float)ticks / SDL_GetPerformanceFrequency();
+}
+
+/** A timer callback that pushes its param to the event
+ *  queue.
+ * @param interval Timer interval
+ * @param param The event to push
+ * @returns 0 if the timer should be removed
+*/
+unsigned int reflect_event(Uint32 interval, void *param) {
+    SDL_PushEvent(param);
+    return interval;
 }
 
 /** Set the render draw color from an SDL_Color
@@ -175,9 +196,6 @@ void new_pipe() {
         .w = PIPE_WIDTH / 2,
         .h = PIPE_GAP,
     };
-
-    // Record the time when the pipe was spawned
-    last_pipe_spawn = game_time;
 }
 
 /** Move the pipes to the left */
@@ -234,7 +252,6 @@ void draw_bird() {
 
 /** Start a new game, initializing all game state */
 void new_game() {
-    game_time = 0;
     score = 0;
     SDL_memset(&pipes, 0, sizeof(pipes));
     new_pipe();
@@ -270,15 +287,22 @@ void draw_game() {
  * @returns SDL_TRUE if another game should be played,
  *          otherwise SDL_FALSE */
 SDL_bool game_over_screen() {
+    SDL_RemoveTimer(game_over_delay_timer);
+    game_over_delay_timer = SDL_AddTimer(
+        GAME_OVER_DELAY,
+        reflect_event,
+        &game_over_delay_event);
+    SDL_bool message_enabled = SDL_FALSE;
     while(1) {
         // Process events
         for(SDL_Event event; SDL_PollEvent(&event);) {
+            if(event.type == GAME_OVER_DELAY_EVENT)
+                message_enabled = SDL_TRUE;
             switch(event.type) {
             case SDL_KEYDOWN:
-                if(event.key.keysym.sym == SDLK_y)
+            case SDL_MOUSEBUTTONDOWN:
+                if(message_enabled)
                     return SDL_TRUE;
-                else if(event.key.keysym.sym == SDLK_n)
-                    return SDL_FALSE;
                 break;
             case SDL_QUIT:
                 return SDL_FALSE;
@@ -287,13 +311,16 @@ SDL_bool game_over_screen() {
 
         // Draw the game and the game over overlay
         draw_game();
-        set_draw_color(&game_over_color);
-        SDL_RenderFillRect(renderer, NULL);
+
+        const char *message = "";
+        if(message_enabled)
+            message = "\nClick to\nplay again";
         draw_string_centered(
             0, WINDOW_WIDTH,
             (WINDOW_HEIGHT / 2) - FONT_CHARACTER_HEIGHT * FONT_DISPLAY_SCALE,
             &game_over_text_color,
-            "WASTED\nPlay again? (Y/N)");
+            "WASTED\n%s",
+            message);
         SDL_RenderPresent(renderer);
     }
 }
@@ -316,14 +343,6 @@ SDL_bool game_start_screen() {
 
         // Draw the game with the game start overlay
         draw_game();
-        set_draw_color(&game_start_color);
-        SDL_RenderFillRect(
-            renderer,
-            &(SDL_Rect){
-                .x = 0,
-                .y = 0,
-                .w = WINDOW_WIDTH,
-                .h = GROUND_Y } );
         draw_string_centered(
             0, WINDOW_WIDTH,
             WINDOW_HEIGHT / 2,
@@ -345,19 +364,24 @@ SDL_bool run_game() {
     if(!game_start_screen())
         return SDL_FALSE;
     
+    // If the pipe spawn timer is active, kill it
+    // and start again
+    SDL_RemoveTimer(pipe_spawn_timer);
+    pipe_spawn_timer = SDL_AddTimer(
+        PIPE_SPAWN_TIME,
+        reflect_event,
+        &pipe_spawn_event);
+
     // Start the game with a flap
     flap();
 
     // Track frame time in ticks to calculate delta_time
-    // and game_time
     Uint64 last_frame = SDL_GetPerformanceCounter();
-    Uint64 game_start = last_frame;
     while(1) {
         // Get the tick count for the start of this frame
-        // and use it to calculate delta_time and game_time
+        // and use it to calculate delta_time
         Uint64 this_frame = SDL_GetPerformanceCounter();
         delta_time = ticks_to_seconds(this_frame - last_frame);
-        game_time = ticks_to_seconds(this_frame - game_start);
         last_frame = this_frame;
 
         // Process events
@@ -365,6 +389,10 @@ SDL_bool run_game() {
             switch (event.type) {
             case SDL_QUIT:
                 return SDL_FALSE;
+            // Spawn a pipe
+            case PIPE_SPAWN_EVENT:
+                new_pipe();
+                break;
             // Flap on key
             case SDL_KEYDOWN:
                 if(event.key.repeat)
@@ -380,8 +408,6 @@ SDL_bool run_game() {
         }
 
         // Update game
-        if(game_time > last_pipe_spawn + PIPE_SPAWN_TIME)
-            new_pipe();
         move_pipes();
         move_bird();
 
