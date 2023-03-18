@@ -24,7 +24,7 @@
 SDL_Window *window;
 SDL_Renderer *renderer;
 
-void create_window() {
+int create_window() {
     // Create the window and renderer
     window = SDL_CreateWindow(
         WINDOW_TITLE,
@@ -33,7 +33,7 @@ void create_window() {
         SDL_WINDOW_RESIZABLE);
     if(window == NULL) {
         SDL_Log("SDL_CreateWindow: %s", SDL_GetError());
-        exit(EXIT_FAILURE);
+        return 0;
     }
 
     renderer = SDL_CreateRenderer(
@@ -41,7 +41,7 @@ void create_window() {
         SDL_RENDERER_PRESENTVSYNC);
     if(renderer == NULL) {
         SDL_Log("SDL_CreateRenderer: %s", SDL_GetError());
-        exit(EXIT_FAILURE);
+        return 0;
     }
 
     // Set the draw blend mode so shapes can be translucent
@@ -55,4 +55,5 @@ void create_window() {
     SDL_SetWindowMinimumSize(
         window,
         WINDOW_WIDTH, WINDOW_HEIGHT);
+    return 1;
 }

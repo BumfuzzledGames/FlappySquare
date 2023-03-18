@@ -21,33 +21,35 @@
 
 #include "start.h"
 #include "game.h"
+#include "../util.h"
 #include "../screen.h"
 #include "../font.h"
 #include "../window.h"
 
-static const SDL_Color text_color = {192, 255, 192, 255};
-
-void start_screen(float delta_time) {
+int start_screen(float delta_time) {
     // Process events
     for(SDL_Event event; SDL_PollEvent(&event);) {
+        random_mixstate(event.common.timestamp);
         switch(event.type) {
         case SDL_QUIT:
-            exit(EXIT_SUCCESS);
+            return 0;
         case SDL_KEYDOWN:
         case SDL_MOUSEBUTTONDOWN:
             enter_game_screen();
             game_screen(delta_time);
-            return;
+            return 1;
         }
     }
 
     // Draw the game with the game start overlay
+    static const SDL_Color text_color = {192, 255, 192, 255};
     draw_game();
     draw_string_centered(
         0, WINDOW_WIDTH,
         WINDOW_HEIGHT / 2,
         &text_color,
         "Click to flap");
+    return 1;
 }
 
 void enter_start_screen() {

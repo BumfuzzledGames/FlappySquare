@@ -58,7 +58,7 @@ void disable_game_collisions();
 void enter_game_screen();
 
 /** Update and render one frame of the game screen */
-void game_screen(float delta_time);
+int game_screen(float delta_time);
 
 /** Draw the game screen */
 void draw_game();

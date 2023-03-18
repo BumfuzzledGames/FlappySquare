@@ -18,8 +18,7 @@
  * License along with this program.  If not, see
  * <https://www.gnu.org/licenses/>.
  **********************************************************/
-#include <SDL.h>
-#include <time.h>
+#include "SDL.h"
 #include "font.h"
 #include "screen.h"
 #include "screens/start.h"
@@ -30,24 +29,25 @@
 #endif // __EMSCRIPTEN__
 
 int main(int argc, char *argv[]) { (void)argc; (void)argv;
-    // Seed PRNG
-    srand(time(0));
-
     // Initialize SDL, create window and renderer, load font.
     // Exit program if any of them fail
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER)) {
         SDL_Log("SDL_Init: %s", SDL_GetError());
-        exit(EXIT_FAILURE);
+        return 1;
     }
-    create_window();
-    load_font();
+    if (!create_window()) {
+        return 1;
+    }
+    if (!load_font()) {
+        return 1;
+    }
 
     enter_start_screen();
 
     #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(run_current_screen, 0, 1);
     #else // __EMSCRIPTEN__
-    while(1) { run_current_screen(); }
+    while(run_current_screen()) {}
     #endif // __EMSCRIPTEN__
 
     return 0;

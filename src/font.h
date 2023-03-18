@@ -21,7 +21,7 @@
 
 #ifndef FLAPPY_FONT_H
 #define FLAPPY_FONT_H
-#include <SDL.h>
+#include "SDL.h"
 
 // Note: @ is actually the copyright symbol
 #define FONT_CHARSET                                       \
@@ -40,7 +40,7 @@
  * 
  * This must be called after the window and its renderer
  * have been created */
-void load_font();
+int load_font();
 
 /** Draw a string on the screen
  * @param x The x coordinate of the top left of the string

@@ -26,6 +26,6 @@
 void enter_start_screen();
 
 /* Update and render one frame of the start screen */
-void start_screen(float delta_time);
+int start_screen(float delta_time);
 
 #endif // FLAPPY_SCREENS_START_H

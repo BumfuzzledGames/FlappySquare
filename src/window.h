@@ -21,7 +21,7 @@
 
 #ifndef FLAPPY_WINDOW_H
 #define FLAPPY_WINDOW_H
-#include <SDL.h>
+#include "SDL.h"
 
 #define WINDOW_TITLE "Flappy Square"
 #define WINDOW_WIDTH (1080/4)
@@ -34,6 +34,6 @@ extern SDL_Window *window;
 extern SDL_Renderer *renderer;
 
 /** Create the window and its renderer, exit on failure */
-void create_window();
+int create_window();
 
 #endif // FLAPPY_WINDOW_H

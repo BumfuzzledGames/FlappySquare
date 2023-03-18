@@ -21,7 +21,7 @@
 
 #ifndef FLAPPY_DRAW_H
 #define FLAPPY_DRAW_H
-#include <SDL.h>
+#include "SDL.h"
 
 /** Set the render draw color from an SDL_Color
  * @param color The color to set */

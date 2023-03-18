@@ -21,7 +21,7 @@
 
 #ifndef FLAPPY_EVENT_H
 #define FLAPPY_EVENT_H
-#include <SDL.h>
+#include "SDL.h"
 
 /** User event IDs */
 enum UserEvents {

@@ -26,7 +26,7 @@ extern SDL_Renderer *renderer;
 
 static SDL_Texture *font;
 
-void load_font() {
+int load_font() {
     // Load the font texture, it is unprocessed and will
     // need some attention
     SDL_Surface *surface = SDL_LoadBMP_RW(
@@ -34,7 +34,7 @@ void load_font() {
         1);
     if(surface == NULL) {
         SDL_Log("SDLCreateRGBSurfaceWithFromFormat %s", SDL_GetError());
-        exit(EXIT_FAILURE);
+        return 0;
     }
 
     // The font should be in black and white indexed mode,
@@ -93,7 +93,7 @@ void load_font() {
         SDL_PIXELFORMAT_RGBA32);
     if(scaled_surface == NULL) {
         SDL_Log("SDL_CreateRGBSurfaceWithFormat %s", SDL_GetError());
-        exit(EXIT_FAILURE);
+        return 0;
     }
     SDL_BlitScaled(surface32, NULL, scaled_surface, NULL);
 
@@ -105,7 +105,7 @@ void load_font() {
     font = SDL_CreateTextureFromSurface(renderer, scaled_surface);
     if(font == NULL) {
         SDL_Log("SDL_CreateTextureFromSurface %s", SDL_GetError());
-        exit(EXIT_FAILURE);
+        return 0;
     }
 
     // Restore texture filtering hint
@@ -118,6 +118,7 @@ void load_font() {
     SDL_FreeSurface(scaled_surface);
     SDL_FreeSurface(surface32);
     SDL_FreeSurface(surface);
+    return 1;
 }
 
 void draw_character(int x, int y, char c) {
@@ -185,12 +186,8 @@ void draw_string(
 // Get the length of the first line of the string, or
 // the length of the string if the string has no newlines
 float line_width(const char *string) {
-    const char *newline = strchr(string, '\n');
-    int width;
-    if(newline != NULL)
-        width = newline - string;
-    else
-        width = strlen(string);
+    int width = 0;
+    for (; string[width] && string[width]!='\n'; width++) {}
     return width * FONT_CHARACTER_WIDTH * FONT_DISPLAY_SCALE;
 }
 

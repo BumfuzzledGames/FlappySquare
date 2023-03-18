@@ -21,7 +21,11 @@
 
 #ifndef FLAPPY_UTIL_H
 #define FLAPPY_UTIL_H
-#include <SDL.h>
+#include "SDL.h"
+
+/** Mix entropy into the random number generator state.
+ * @param seed Data to mix the state */
+void random_mixstate(int seed);
 
 /** Return a random number within a range
  * @param min The range start

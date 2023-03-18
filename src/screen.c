@@ -23,12 +23,15 @@
 #include "util.h"
 #include "draw.h"
 #include "window.h"
-#include <SDL.h>
+#include "SDL.h"
 
 static SDL_bool first_frame = SDL_TRUE;
 static Uint64 last_frame;
 
-static void no_screen(float delta_time) { (void)delta_time; }
+static int no_screen(float delta_time) {
+    (void)delta_time;
+    return 1;
+}
 
 static Screen current_screen = no_screen;
 static const SDL_Color clear_color = {32, 32, 32, 255};
@@ -37,7 +40,7 @@ void set_current_screen(Screen screen) {
     current_screen = screen;
 }
 
-void run_current_screen() {
+int run_current_screen() {
     if(first_frame) {
         last_frame = SDL_GetPerformanceCounter();
         first_frame = SDL_FALSE;
@@ -49,6 +52,7 @@ void run_current_screen() {
 
     set_draw_color(&clear_color);
     SDL_RenderClear(renderer);
-    current_screen(delta_time);
+    int r = current_screen(delta_time);
     SDL_RenderPresent(renderer);
+    return r;
 }

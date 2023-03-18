@@ -28,6 +28,6 @@
 void enter_game_over_screen();
 
 /** Update and render one frame of the game over screen */
-void game_over_screen(float delta_time);
+int game_over_screen(float delta_time);
 
 #endif // FLAPPY_SCREEN_GAME_OVER_H

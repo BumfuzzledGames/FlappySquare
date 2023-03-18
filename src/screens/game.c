@@ -252,12 +252,12 @@ SDL_bool check_collisions() {
     return game_over;
 }
 
-void game_screen(float delta_time) {
+int game_screen(float delta_time) {
     // Process events
     for(SDL_Event event; SDL_PollEvent(&event);) {
         switch (event.type) {
         case SDL_QUIT:
-            exit(EXIT_SUCCESS);
+            return 0;
         // Spawn a pipe
         case PIPE_SPAWN_EVENT:
             new_pipe();
@@ -287,9 +287,10 @@ void game_screen(float delta_time) {
     if(game_over) {
         enter_game_over_screen();
         game_over_screen(delta_time);
-        return;
+        return 1;
     }
 
     // Render game
     draw_game();
+    return 1;
 }

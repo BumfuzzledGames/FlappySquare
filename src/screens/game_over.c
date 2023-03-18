@@ -26,13 +26,12 @@
 #include "../font.h"
 #include "../window.h"
 #include "../draw.h"
-#include <SDL.h>
+#include "SDL.h"
 
 static SDL_TimerID delay_timer;
 static SDL_Event delay_event = {GAME_OVER_DELAY_EVENT};
 static SDL_bool display_message;
 
-static const SDL_Color text_color = {255, 255, 255, 255};
 static const SDL_Color overlay_color = {64, 0, 0, 192};
 
 void enter_game_over_screen() {
@@ -47,7 +46,7 @@ void enter_game_over_screen() {
 }
 
 /** Display the game over screen */
-void game_over_screen(float delta_time) {
+int game_over_screen(float delta_time) {
     // Process events
     for(SDL_Event event; SDL_PollEvent(&event);) {
         switch(event.type) {
@@ -61,11 +60,11 @@ void game_over_screen(float delta_time) {
             if(display_message) {
                 enter_start_screen();
                 start_screen(delta_time);
-                return;
+                return 1;
             }
             break;
         case SDL_QUIT:
-            exit(EXIT_SUCCESS);
+            return 0;
         }
     }
 
@@ -82,10 +81,12 @@ void game_over_screen(float delta_time) {
     const char *message = "";
     if(display_message)
         message = "\nClick to\nplay again";
+    static const SDL_Color text_color = {255, 255, 255, 255};
     draw_string_centered(
         0, WINDOW_WIDTH,
         (WINDOW_HEIGHT / 2) - FONT_CHARACTER_HEIGHT * FONT_DISPLAY_SCALE,
         &text_color,
         "WASTED\n%s",
         message);
+    return 1;
 }

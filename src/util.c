@@ -21,10 +21,21 @@
 
 #include "util.h"
 
+static Uint64 random_state;
+
+void random_mixstate(int seed) {
+    random_state += seed;
+}
+
+static int rand31(void) {
+    random_state = random_state*0x3243f6a8885a308dULL + 1;
+    return random_state >> 33;
+}
+
 float ticks_to_seconds(Uint64 ticks) {
     return (float)ticks / SDL_GetPerformanceFrequency();
 }
 
 int random_in_range(int min, int max) {
-    return rand() % (max - min) + min;
+    return rand31() % (max - min) + min;
 }
