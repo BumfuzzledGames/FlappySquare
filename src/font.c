@@ -122,6 +122,10 @@ int load_font() {
 }
 
 void draw_character(int x, int y, char c) {
+    float scale;
+    SDL_RenderGetScale(renderer, &scale, 0);
+    SDL_RenderSetScale(renderer, 1, 1);
+
     char *char_in_set = SDL_strchr(FONT_CHARSET, c);
     if(char_in_set == NULL)
         char_in_set = SDL_strchr(FONT_CHARSET, '?');
@@ -134,7 +138,8 @@ void draw_character(int x, int y, char c) {
     int texture_y =
         FONT_TEXTURE_SCALE +
         (FONT_CHARACTER_HEIGHT + 1) * FONT_TEXTURE_SCALE * charset_y;
-    SDL_RenderCopy(
+
+    SDL_RenderCopyF(
         renderer,
         font,
         &(SDL_Rect) {
@@ -142,11 +147,13 @@ void draw_character(int x, int y, char c) {
             .y = texture_y,
             .w = FONT_CHARACTER_WIDTH * FONT_TEXTURE_SCALE,
             .h = FONT_CHARACTER_HEIGHT * FONT_TEXTURE_SCALE, },
-        &(SDL_Rect) {
-            .x = x,
-            .y = y,
-            .w = FONT_CHARACTER_WIDTH * FONT_DISPLAY_SCALE,
-            .h = FONT_CHARACTER_HEIGHT * FONT_DISPLAY_SCALE, } );
+        &(SDL_FRect) {
+            .x = x * scale,
+            .y = y * scale,
+            .w = FONT_CHARACTER_WIDTH * FONT_DISPLAY_SCALE * scale,
+            .h = FONT_CHARACTER_HEIGHT * FONT_DISPLAY_SCALE * scale, } );
+    
+    SDL_RenderSetScale(renderer, scale, scale);
 }
 
 void draw_string(

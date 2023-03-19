@@ -33,7 +33,7 @@
 #define FONT_CHARACTER_ROWS 3
 #define FONT_CHARACTER_WIDTH 8
 #define FONT_CHARACTER_HEIGHT 8
-#define FONT_TEXTURE_SCALE 4
+#define FONT_TEXTURE_SCALE 3
 #define FONT_DISPLAY_SCALE 2
 
 /** Load the font resources

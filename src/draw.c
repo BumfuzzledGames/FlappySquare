@@ -39,8 +39,21 @@ void set_draw_color(const SDL_Color *color) {
 }
 
 void draw_rect(const SDL_FRect *rect, const SDL_Color *color) {
+    float scale;
+    SDL_RenderGetScale(renderer, &scale, 0);
+    SDL_RenderSetScale(renderer, 1, 1);
+
+    SDL_FRect r = {
+        .x = rect->x * scale,
+        .y = rect->y * scale,
+        .w = rect->w * scale,
+        .h = rect->h * scale
+    };
+
     set_draw_color(color);
-    SDL_RenderFillRectF(renderer, rect);
+    SDL_RenderFillRectF(renderer, &r);
     set_draw_color(&stroke_color);
-    SDL_RenderDrawRectF(renderer, rect);
+    SDL_RenderDrawRectF(renderer, &r);
+
+    SDL_RenderSetScale(renderer, scale, scale);
 }
