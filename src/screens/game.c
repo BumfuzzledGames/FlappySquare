@@ -22,7 +22,6 @@
 #include "game.h"
 #include "game_over.h"
 #include "../screen.h"
-#include "../event.h"
 #include "../font.h"
 #include "../draw.h"
 #include "../util.h"
@@ -40,9 +39,10 @@ typedef struct Bird {
     SDL_FPoint velocity;
 } Bird;
 
+static float screen_time;
+
 static Pipe pipes[MAX_PIPES];
-static SDL_TimerID pipe_spawn_timer;
-static SDL_Event pipe_spawn_event = {PIPE_SPAWN_EVENT};
+static float next_pipe_spawn_time;
 
 static Bird bird;
 
@@ -129,6 +129,8 @@ static void new_pipe() {
         .w = PIPE_WIDTH / 2,
         .h = PIPE_GAP,
     };
+
+    next_pipe_spawn_time += PIPE_SPAWN_TIME;
 }
 
 /** Move the pipes to the left */
@@ -207,6 +209,8 @@ void draw_game() {
 
 /** Start a new game, initializing all game state */
 void new_game() {
+    screen_time = 0;
+    next_pipe_spawn_time = 0;
     score = 0;
     SDL_memset(&pipes, 0, sizeof(pipes));
     new_pipe();
@@ -215,14 +219,6 @@ void new_game() {
 }
 
 void enter_game_screen() {
-    // If the pipe spawn timer is active, kill it
-    SDL_RemoveTimer(pipe_spawn_timer);
-    // Start the pipe spawn timer
-    pipe_spawn_timer = SDL_AddTimer(
-        PIPE_SPAWN_TIME,
-        reflect_event,
-        &pipe_spawn_event);
-
     // Start the game with a flap
     flap();
 
@@ -253,15 +249,13 @@ SDL_bool check_collisions() {
 }
 
 int game_screen(float delta_time) {
+    screen_time += delta_time;
+
     // Process events
     for(SDL_Event event; SDL_PollEvent(&event);) {
         switch (event.type) {
         case SDL_QUIT:
             return 0;
-        // Spawn a pipe
-        case PIPE_SPAWN_EVENT:
-            new_pipe();
-            break;
         // Flap on key
         case SDL_KEYDOWN:
             if(event.key.repeat)
@@ -275,6 +269,10 @@ int game_screen(float delta_time) {
             break;
         }
     }
+    
+    // Spawn a new pipe if it's time
+    if(screen_time > next_pipe_spawn_time)
+        new_pipe();
 
     // Update game
     move_pipes(delta_time);

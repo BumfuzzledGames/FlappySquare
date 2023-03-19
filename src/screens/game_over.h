@@ -22,7 +22,7 @@
 #ifndef FLAPPY_SCREEN_GAME_OVER_H
 #define FLAPPY_SCREEN_GAME_OVER_H
 
-#define GAME_OVER_DELAY 1000
+#define GAME_OVER_DELAY 1
 
 /** Enter the game over screen, set current screen */
 void enter_game_over_screen();

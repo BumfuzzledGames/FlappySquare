@@ -5,7 +5,6 @@ find_package(SDL2 REQUIRED)
 set(
     SRC
     src/draw.c
-    src/event.c
     src/font.c
     src/main.c
     src/screen.c

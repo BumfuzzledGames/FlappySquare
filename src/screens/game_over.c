@@ -22,42 +22,34 @@
 #include "game.h"
 #include "start.h"
 #include "../screen.h"
-#include "../event.h"
 #include "../font.h"
 #include "../window.h"
 #include "../draw.h"
 #include "SDL.h"
 
-static SDL_TimerID delay_timer;
-static SDL_Event delay_event = {GAME_OVER_DELAY_EVENT};
-static SDL_bool display_message;
+#define DELAY_TIME 1
+#define GAME_SCREEN_SLOWDOWN 10
+
+static float screen_time;
 
 static const SDL_Color overlay_color = {64, 0, 0, 192};
 
 void enter_game_over_screen() {
-    SDL_RemoveTimer(delay_timer);
-    delay_timer = SDL_AddTimer(
-        GAME_OVER_DELAY,
-        reflect_event,
-        &delay_event);
-    display_message = SDL_FALSE;
+    screen_time = 0;
     disable_game_collisions();
     set_current_screen(game_over_screen);
 }
 
 /** Display the game over screen */
 int game_over_screen(float delta_time) {
+    screen_time += delta_time;
+
     // Process events
     for(SDL_Event event; SDL_PollEvent(&event);) {
         switch(event.type) {
-        case GAME_OVER_DELAY_EVENT:
-            display_message = SDL_TRUE;
-            SDL_RemoveTimer(delay_timer);
-            delay_timer = 0;
-            break;
         case SDL_KEYDOWN:
         case SDL_MOUSEBUTTONDOWN:
-            if(display_message) {
+            if(screen_time > DELAY_TIME) {
                 enter_start_screen();
                 start_screen(delta_time);
                 return 1;
@@ -70,7 +62,7 @@ int game_over_screen(float delta_time) {
 
     // Keep updating and drawing the game in slow motion
     // enter_game_over disabled collision, though
-    game_screen(delta_time / 10);
+    game_screen(delta_time / GAME_SCREEN_SLOWDOWN);
 
     set_draw_color(&overlay_color);
     SDL_RenderFillRect(
@@ -79,7 +71,7 @@ int game_over_screen(float delta_time) {
 
     // Draw the message
     const char *message = "";
-    if(display_message)
+    if(screen_time > DELAY_TIME)
         message = "\nClick to\nplay again";
     static const SDL_Color text_color = {255, 255, 255, 255};
     draw_string_centered(
