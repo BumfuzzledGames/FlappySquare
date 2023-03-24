@@ -34,6 +34,6 @@ extern SDL_Window *window;
 extern SDL_Renderer *renderer;
 
 /** Create the window and its renderer, exit on failure */
-int create_window();
+int create_window(void);
 
 #endif // FLAPPY_WINDOW_H

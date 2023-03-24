@@ -26,7 +26,7 @@ extern SDL_Renderer *renderer;
 
 static SDL_Texture *font;
 
-int load_font() {
+int load_font(void) {
     // Load the font texture, it is unprocessed and will
     // need some attention
     SDL_Surface *surface = SDL_LoadBMP_RW(

@@ -40,7 +40,7 @@
  * 
  * This must be called after the window and its renderer
  * have been created */
-int load_font();
+int load_font(void);
 
 /** Draw a string on the screen
  * @param x The x coordinate of the top left of the string

@@ -24,7 +24,7 @@
 SDL_Window *window;
 SDL_Renderer *renderer;
 
-int create_window() {
+int create_window(void) {
     // Create the window and renderer
     window = SDL_CreateWindow(
         WINDOW_TITLE,

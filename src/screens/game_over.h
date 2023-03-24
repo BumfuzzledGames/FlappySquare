@@ -25,7 +25,7 @@
 #define GAME_OVER_DELAY 1
 
 /** Enter the game over screen, set current screen */
-void enter_game_over_screen();
+void enter_game_over_screen(void);
 
 /** Update and render one frame of the game over screen */
 int game_over_screen(float delta_time);

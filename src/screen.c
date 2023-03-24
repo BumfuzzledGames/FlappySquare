@@ -40,7 +40,7 @@ void set_current_screen(Screen screen) {
     current_screen = screen;
 }
 
-int run_current_screen() {
+int run_current_screen(void) {
     if(first_frame) {
         last_frame = SDL_GetPerformanceCounter();
         first_frame = SDL_FALSE;

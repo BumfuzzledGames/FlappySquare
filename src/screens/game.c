@@ -75,15 +75,15 @@ const SDL_FRect ceiling = {
     .h = 100,
 };
 
-void disable_game_collisions() {
+void disable_game_collisions(void) {
     collisions_enabled = SDL_FALSE;
 }
 
-int get_score() {
+int get_score(void) {
     return score;
 }
 
-int get_high_score() {
+int get_high_score(void) {
     return high_score;
 }
 
@@ -102,7 +102,7 @@ void increment_score(int amount) {
  * New pipes are always created at the head of the list, so
  * the newest pipe is always index 0 and the oldest pipe
  * is always the last index. */
-static void new_pipe() {
+static void new_pipe(void) {
     // Move the pipes over in the array, erasing the
     // oldest pipe which should be off screen by now.
     SDL_memmove(
@@ -150,7 +150,7 @@ static void move_pipes(float delta_time) {
 }
 
 /** Draw the pipes */
-static void draw_pipes() {
+static void draw_pipes(void) {
     for(int pipe = 0; pipe < MAX_PIPES; pipe++) {
         draw_rect(&pipes[pipe].top, &pipe_color);
         draw_rect(&pipes[pipe].bottom, &pipe_color);
@@ -163,7 +163,7 @@ static void draw_pipes() {
 }
 
 /** Create a new bird */
-static void new_bird() {
+static void new_bird(void) {
     bird = (Bird) {
         .alive = SDL_TRUE,
         .rect = (SDL_FRect) {
@@ -177,7 +177,7 @@ static void new_bird() {
 }
 
 /** Flappy flappy */
-static void flap() {
+static void flap(void) {
     if(bird.alive)
         bird.velocity.y = BIRD_FLAP_VELOCITY;
 }
@@ -189,12 +189,12 @@ static void move_bird(float delta_time) {
 }
 
 /** Draw the bird */
-static void draw_bird() {
+static void draw_bird(void) {
     draw_rect(&bird.rect, &bird_color);
 }
 
 /** Clear the screen and draw the game */
-void draw_game() {
+void draw_game(void) {
     // Clear the game area
     set_draw_color(&background_color);
     SDL_RenderFillRect(renderer, NULL);
@@ -215,7 +215,7 @@ void draw_game() {
 }
 
 /** Start a new game, initializing all game state */
-void new_game() {
+void new_game(void) {
     screen_time = 0;
     next_pipe_spawn_time = 0;
     score = 0;
@@ -225,14 +225,14 @@ void new_game() {
     collisions_enabled = SDL_TRUE;
 }
 
-void enter_game_screen() {
+void enter_game_screen(void) {
     // Start the game with a flap
     flap();
 
     set_current_screen(game_screen);
 }
 
-SDL_bool check_collisions() {
+SDL_bool check_collisions(void) {
     // Bird hit trigger?
     for(int pipe = 0; pipe < MAX_PIPES; pipe++) {
         if(SDL_HasIntersectionF(&pipes[pipe].trigger, &bird.rect)) {

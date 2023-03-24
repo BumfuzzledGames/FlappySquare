@@ -34,7 +34,7 @@ static float screen_time;
 
 static const SDL_Color overlay_color = {64, 0, 0, 192};
 
-void enter_game_over_screen() {
+void enter_game_over_screen(void) {
     screen_time = 0;
     disable_game_collisions();
     set_current_screen(game_over_screen);

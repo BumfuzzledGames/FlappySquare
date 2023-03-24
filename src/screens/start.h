@@ -23,7 +23,7 @@
 #define FLAPPY_SCREENS_START_H
 
 /* Enter the start screen, set current screen */
-void enter_start_screen();
+void enter_start_screen(void);
 
 /* Update and render one frame of the start screen */
 int start_screen(float delta_time);

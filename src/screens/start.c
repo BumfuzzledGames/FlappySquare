@@ -52,7 +52,7 @@ int start_screen(float delta_time) {
     return 1;
 }
 
-void enter_start_screen() {
+void enter_start_screen(void) {
     // Initialize game state and set current screen
     new_game();
     set_current_screen(start_screen);

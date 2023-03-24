@@ -45,29 +45,29 @@
  * the game screen needs to be able to be a "client" screen,
  * that is, other screens need to be able to draw it when
  * it isn't the current screen. */
-void new_game();
+void new_game(void);
 
 /** Disable collisions in the game
  * 
  * This is used by the game over screen to allow the player
  * to fall in the background while the game over screen is
  * displayed */
-void disable_game_collisions();
+void disable_game_collisions(void);
 
 /** Enter game screen, set current screen */
-void enter_game_screen();
+void enter_game_screen(void);
 
 /** Update and render one frame of the game screen */
 int game_screen(float delta_time);
 
 /** Draw the game screen */
-void draw_game();
+void draw_game(void);
 
 /** Get score of curren game */
-int get_score();
+int get_score(void);
 
 /** Get the high score of all games played this session */
-int get_high_score();
+int get_high_score(void);
 
 /** Set the score, update high score if necessary */
 void set_score(int score);

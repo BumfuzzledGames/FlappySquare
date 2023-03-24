@@ -33,6 +33,6 @@ typedef int (*Screen)(float delta_time);
 void set_current_screen(Screen screen);
 
 /** Update and render a single frame of the current scene */
-int run_current_screen();
+int run_current_screen(void);
 
 #endif // FLAPPY_SCREEN_H
