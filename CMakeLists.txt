@@ -26,7 +26,6 @@ set(
     -std=c17
     -Wall -Wextra -Wshadow -Werror
     -pedantic
-    -fanalyzer
 )
 
 target_compile_options(
