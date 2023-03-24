@@ -22,6 +22,9 @@
 #ifndef FLAPPY_SCREEN_H
 #define FLAPPY_SCREEN_H
 
+/** The delta_time will never exceed this value */
+#define MAX_DELTA_TIME (1.0f / 30)
+
 /** A screen function updates and renders a single frame */
 typedef int (*Screen)(float delta_time);
 

@@ -47,7 +47,9 @@ int run_current_screen() {
     }
 
     Uint64 this_frame = SDL_GetPerformanceCounter();
-    float delta_time = ticks_to_seconds(this_frame - last_frame);
+    float delta_time = SDL_min(
+        ticks_to_seconds(this_frame - last_frame),
+        MAX_DELTA_TIME);
     last_frame = this_frame;
 
     set_draw_color(&clear_color);
