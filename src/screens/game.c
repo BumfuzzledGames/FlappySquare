@@ -68,6 +68,13 @@ const SDL_FRect ground = {
     .h = WINDOW_HEIGHT - GROUND_Y,
 };
 
+const SDL_FRect ceiling = {
+    .x = 0,
+    .y = -100,
+    .w = WINDOW_WIDTH,
+    .h = 100,
+};
+
 void disable_game_collisions() {
     collisions_enabled = SDL_FALSE;
 }
@@ -241,6 +248,7 @@ SDL_bool check_collisions() {
     // Game over?
     SDL_bool game_over = SDL_FALSE;
     game_over |= SDL_HasIntersectionF(&ground, &bird.rect);
+    game_over |= SDL_HasIntersectionF(&ceiling, &bird.rect);
     for(int pipe = 0; !game_over && pipe < MAX_PIPES; pipe++) {
         game_over |= SDL_HasIntersectionF(&pipes[pipe].top, &bird.rect);
         game_over |= SDL_HasIntersectionF(&pipes[pipe].bottom, &bird.rect);
