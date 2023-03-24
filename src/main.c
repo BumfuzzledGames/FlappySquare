@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) { (void)argc; (void)argv;
     enter_start_screen();
 
     #ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop(run_current_screen, 0, 1);
+    emscripten_set_main_loop((em_callback_func)run_current_screen, 0, 1);
     #else // __EMSCRIPTEN__
     while(run_current_screen()) {}
     #endif // __EMSCRIPTEN__
