@@ -1,0 +1,1 @@
+rm -Rf emscripten_build && emcmake cmake -DCMAKE_BUILD_TYPE=Release -B emscripten_build && cmake --build emscripten_build && cmake --install emscripten_build

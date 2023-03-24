@@ -56,3 +56,11 @@ install(
     FILES $<TARGET_RUNTIME_DLLS:FlappySquare>
     DESTINATION "${INSTALLDIR}"
 )
+if(EMSCRIPTEN)
+    install(
+        FILES
+            "${CMAKE_CURRENT_BINARY_DIR}/FlappySquare.wasm"
+            emscripten/index.html
+        DESTINATION "${INSTALLDIR}"
+    )
+endif()
